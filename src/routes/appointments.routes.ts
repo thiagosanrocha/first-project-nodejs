@@ -1,41 +1,52 @@
 import { Router } from "express";
-import { parseISO, startOfHour } from "date-fns";
+import { getCustomRepository } from "typeorm";
+import { parseISO } from "date-fns";
 
-import AppointmentsRepositories from "../repositories/AppointmentsRepository";
+import ensureAuthentication from "../middlewares/ensureAuthentication";
+import CreateAppointmentService from "../services/CreateAppointmentService";
+import AppointmentsRepository from "../repositories/AppointmentsRepository";
 
 const appointmentsRouter = Router();
 
-const appointmentsRepository = new AppointmentsRepositories();
+appointmentsRouter.use(ensureAuthentication);
 
-appointmentsRouter.get("/", (req, res) => {
-  const { provider } = req.query;
+appointmentsRouter.get("/all", async (req, res) => {
+  const appointmentsRepository = getCustomRepository(AppointmentsRepository);
 
-  const appointments = appointmentsRepository.listAppointments(
-    String(provider),
-  );
+  const appointments = await appointmentsRepository.find();
 
   return res.json(appointments);
 });
 
-appointmentsRouter.post("/", (req, res) => {
-  const { provider, date } = req.body;
+appointmentsRouter.get("/", async (req, res) => {
+  try {
+    const appointmentsRepository = getCustomRepository(AppointmentsRepository);
 
-  const parsedDate = startOfHour(parseISO(date));
+    const appointments = await appointmentsRepository.listAppoitmentsByProvider(
+      String(req.user.id),
+    );
 
-  const hasAppointment = appointmentsRepository.findByAppointment(
-    provider,
-    parsedDate,
-  );
-
-  if (hasAppointment) {
-    return res
-      .status(400)
-      .json({ error: "This appointment is already booked" });
+    return res.json(appointments);
+  } catch (err) {
+    return res.status(400).send();
   }
+});
 
-  const newAppointment = appointmentsRepository.create(provider, parsedDate);
+appointmentsRouter.post("/", async (req, res) => {
+  try {
+    const { provider_id, date } = req.body;
 
-  return res.json(newAppointment);
+    const createAppointment = new CreateAppointmentService();
+
+    const newAppointment = await createAppointment.run({
+      provider_id,
+      date: parseISO(date),
+    });
+
+    return res.json(newAppointment);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
 });
 
 export default appointmentsRouter;
