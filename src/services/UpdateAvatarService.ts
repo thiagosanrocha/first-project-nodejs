@@ -75,6 +75,8 @@ class UpdateAvatarService {
 
     await avatarRepository.save(createAvatar);
 
+    delete createAvatar.path;
+
     return createAvatar;
   }
 }
