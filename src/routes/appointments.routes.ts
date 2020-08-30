@@ -19,34 +19,26 @@ appointmentsRouter.get("/all", async (req, res) => {
 });
 
 appointmentsRouter.get("/", async (req, res) => {
-  try {
-    const appointmentsRepository = getCustomRepository(AppointmentsRepository);
+  const appointmentsRepository = getCustomRepository(AppointmentsRepository);
 
-    const appointments = await appointmentsRepository.listAppoitmentsByProvider(
-      String(req.user.id),
-    );
+  const appointments = await appointmentsRepository.listAppoitmentsByProvider(
+    String(req.user.id),
+  );
 
-    return res.json(appointments);
-  } catch (err) {
-    return res.status(400).send();
-  }
+  return res.json(appointments);
 });
 
 appointmentsRouter.post("/", async (req, res) => {
-  try {
-    const { provider_id, date } = req.body;
+  const { provider_id, date } = req.body;
 
-    const createAppointment = new CreateAppointmentService();
+  const createAppointment = new CreateAppointmentService();
 
-    const newAppointment = await createAppointment.run({
-      provider_id,
-      date: parseISO(date),
-    });
+  const newAppointment = await createAppointment.run({
+    provider_id,
+    date: parseISO(date),
+  });
 
-    return res.json(newAppointment);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
+  return res.json(newAppointment);
 });
 
 export default appointmentsRouter;

@@ -6,6 +6,7 @@ import { v4 as uuid } from "uuid";
 import Avatar from "../models/Avatar";
 import User from "../models/User";
 import uploadConfig from "../config/uploadConfig";
+import AppError from "../errors/AppError";
 
 interface RequestDTO {
   user_id: string;
@@ -25,11 +26,11 @@ class UpdateAvatarService {
     }
 
     if (!file) {
-      throw Error("Avatar/User Id don't send");
+      throw new AppError("Avatar/User Id don't send");
     } else if (!user_id) {
       await removeAvatarFile(uploadConfig.directory, file.filename);
 
-      throw Error("Avatar/User Id don't send");
+      throw new AppError("Avatar/User Id don't send");
     }
 
     const userRepository = getRepository(User);
@@ -41,7 +42,7 @@ class UpdateAvatarService {
     if (!user) {
       await removeAvatarFile(uploadConfig.directory, file.filename);
 
-      throw new Error("Only authenticated users can change avatar");
+      throw new AppError("Only authenticated users can change avatar");
     }
 
     const avatarRepository = getRepository(Avatar);
@@ -62,7 +63,7 @@ class UpdateAvatarService {
       } catch (err) {
         await removeAvatarFile(uploadConfig.directory, file.filename);
 
-        throw new Error("Internal Error");
+        throw new AppError("Internal Error", 500);
       }
     }
 

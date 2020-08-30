@@ -4,6 +4,7 @@ import { v4 as uuid, validate } from "uuid";
 import { getCustomRepository } from "typeorm";
 import Appointment from "../models/Appointment";
 import AppointmentsRepository from "../repositories/AppointmentsRepository";
+import AppError from "../errors/AppError";
 
 interface RequestDTO {
   provider_id: string;
@@ -13,11 +14,11 @@ interface RequestDTO {
 class CreateAppointmentService {
   public async run({ provider_id, date }: RequestDTO): Promise<Appointment> {
     if (!provider_id) {
-      throw Error("Provider ID don't send");
+      throw new AppError("Provider ID don't send");
     }
 
     if (!validate(provider_id)) {
-      throw Error("Invalid Provider Id");
+      throw new AppError("Invalid Provider Id");
     }
 
     const appointmentsRepository = getCustomRepository(AppointmentsRepository);
@@ -30,7 +31,7 @@ class CreateAppointmentService {
     });
 
     if (hasAppointment) {
-      throw Error("This appointment is already booked");
+      throw new AppError("This appointment is already booked");
     }
 
     const newAppointment = appointmentsRepository.create({

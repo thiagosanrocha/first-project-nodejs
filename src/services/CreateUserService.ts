@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { hash } from "bcryptjs";
 
 import User from "../models/User";
+import AppError from "../errors/AppError";
 
 interface RequestDTO {
   name: string;
@@ -13,11 +14,11 @@ interface RequestDTO {
 class CreateUserService {
   public async run({ name, email, password }: RequestDTO): Promise<User> {
     if (!name) {
-      throw Error("Name not send");
+      throw new AppError("Name not send");
     } else if (!email) {
-      throw Error("Email not send");
+      throw new AppError("Email not send");
     } else if (!password) {
-      throw Error("Password not send");
+      throw new AppError("Password not send");
     }
 
     const usersRepository = getRepository(User);
@@ -27,7 +28,7 @@ class CreateUserService {
     });
 
     if (checkUserExists) {
-      throw Error("Email already registered");
+      throw new AppError("Email already registered");
     }
 
     const hashPassword = await hash(password, 8);

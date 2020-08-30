@@ -4,6 +4,7 @@ import { sign } from "jsonwebtoken";
 
 import User from "../models/User";
 import tokenConfig from "../config/tokenConfig";
+import AppError from "../errors/AppError";
 
 interface RequestDTO {
   email: string;
@@ -18,7 +19,7 @@ interface Response {
 class CreateSessionServide {
   public async run({ email, password }: RequestDTO): Promise<Response> {
     if (!email || !password) {
-      throw Error("Email/Password not send");
+      throw new AppError("Email/Password not send");
     }
 
     const usersRepository = getRepository(User);
@@ -28,13 +29,13 @@ class CreateSessionServide {
     });
 
     if (!user) {
-      throw Error("Email/Password invalid");
+      throw new AppError("Email/Password invalid");
     }
 
     const passwordsMatched = await compare(password, user.password);
 
     if (!passwordsMatched) {
-      throw Error("Email/Password invalid");
+      throw new AppError("Email/Password invalid");
     }
 
     delete user.password;
